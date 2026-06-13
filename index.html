@@ -4,20 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>留言板-默默无名就到此为止啦...</title>
-    https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1/style.min.css" />
+    <!-- 动漫风字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            /* 多层流动渐变背景，动态不呆板 */
+            background: linear-gradient(-45deg, #0f0c29, #201b47, #2c2761, #1a173d);
+            background-size: 400% 400%;
+            animation: bgFlow 18s ease infinite;
             min-height: 200vh;
             overflow-x: hidden;
-            font-family: "LXGW WenKai", "霞鹜文楷", system-ui, -apple-system, sans-serif;
+            font-family: "ZCOOL KuaiLe", "Noto Sans SC", sans-serif;
+            position: relative;
         }
-        
+
+        /* 全局浮动光点 增强生动感 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.3), transparent),
+                radial-gradient(2px 2px at 40% 70%, rgba(168, 85, 247, 0.3), transparent),
+                radial-gradient(1.5px 1.5px at 60% 20%, rgba(96, 165, 250, 0.3), transparent),
+                radial-gradient(2px 2px at 80% 90%, rgba(250, 236, 21, 0.25), transparent);
+            background-repeat: repeat;
+            background-size: 100% 100%;
+            pointer-events: none;
+            z-index: 0;
+            animation: starMove 22s linear infinite;
+        }
+
+        /* 背景流动动画 */
+        @keyframes bgFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 光点缓慢飘动 */
+        @keyframes starMove {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0); }
+        }
+
+        /* 弹幕容器 */
         .danmaku-container {
             position: fixed;
             top: 0;
@@ -28,14 +71,17 @@
             z-index: 1;
             overflow: hidden;
         }
+
         .danmaku-item {
             position: absolute;
             white-space: nowrap;
-            font-size: 17px;
+            font-size: 18px;
             color: #fff;
-            text-shadow: 0 0 3px #fff, 0 0 6px #a855f7, 0 0 10px #3b82f6;
+            text-shadow: 0 0 4px #fff, 0 0 8px #a855f7, 0 0 14px #3b82f6, 0 0 20px #7c3aed;
             will-change: transform;
+            letter-spacing: 1px;
         }
+
         .top-tip {
             position: fixed;
             top: 20px;
@@ -46,7 +92,8 @@
             color: #e0e0e0;
             text-shadow: 0 0 3px #a855f7;
         }
-        
+
+        /* 强化毛玻璃留言面板 层次质感拉满 */
         .message-panel {
             position: fixed;
             bottom: -420px;
@@ -54,64 +101,83 @@
             transform: translateX(-50%);
             width: 92%;
             max-width: 580px;
-            padding: 25px;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 16px 16px 0 0;
-            transition: bottom 0.4s ease-out;
+            padding: 28px;
+            /* 多层毛玻璃 + 渐变边框，自然高级 */
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(16px) saturate(140%);
+            -webkit-backdrop-filter: blur(16px) saturate(140%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-top: 1px solid rgba(168, 85, 247, 0.25);
+            border-radius: 18px 18px 0 0;
+            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: bottom 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
             z-index: 10;
         }
+
         .message-panel.active {
             bottom: 0;
         }
+
         .panel-title {
             text-align: center;
-            font-size: 20px;
-            margin-bottom: 20px;
+            font-size: 22px;
+            margin-bottom: 22px;
             color: #f0f0f0;
             text-shadow: 0 0 5px #3b82f6;
+            letter-spacing: 2px;
         }
+
         input, textarea {
             width: 100%;
             padding: 14px;
             margin-bottom: 16px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.25);
             color: #fff;
             font-size: 15px;
             outline: none;
             font-family: inherit;
             text-shadow: 0 0 2px #a855f7;
+            transition: border-color 0.25s ease;
         }
+
+        input:focus, textarea:focus {
+            border-color: rgba(168, 85, 247, 0.5);
+        }
+
         input::placeholder, textarea::placeholder {
             color: rgba(255, 255, 255, 0.5);
         }
+
         .submit-btn {
             width: 100%;
             padding: 13px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             background: linear-gradient(90deg, #7c3aed, #2563eb);
             color: #fff;
             font-size: 16px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.25s ease;
             text-shadow: 0 0 4px #fff;
             font-family: inherit;
+            letter-spacing: 1px;
         }
+
         .submit-btn:hover {
-            filter: brightness(1.1);
-            box-shadow: 0 0 10px #7c3aed;
+            filter: brightness(1.15);
+            box-shadow: 0 0 14px #7c3aed;
+            transform: scale(1.01);
         }
+
         .drag-bar {
             width: 50px;
             height: 4px;
             background: rgba(255, 255, 255, 0.3);
             border-radius: 2px;
-            margin: 0 auto 15px;
+            margin: 0 auto 18px;
         }
     </style>
 </head>
@@ -121,7 +187,7 @@
 
     <div class="message-panel" id="msgPanel">
         <div class="drag-bar"></div>
-        <h3 class="panel-title">走心的留言更能打动人心...</h3>
+        <h3 class="panel-title">写下你的留言</h3>
         <form name="msgBoard" data-netlify="true" id="msgForm">
             <input type="text" name="nick" placeholder="昵称" required>
             <textarea name="content" rows="4" placeholder="输入留言内容..." required></textarea>
@@ -168,12 +234,21 @@
             addDanmaku(item.nick, item.content);
         }
 
-        // 拉取后端留言
+        // 拉取留言 + 自动去重
         async function fetchMsg() {
             try {
                 const res = await fetch(API_URL);
                 const list = await res.json();
-                msgPool = list;
+                const uniqueList = [];
+                const seen = new Set();
+                for (const item of list) {
+                    const key = `${item.nick}-${item.content}`;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        uniqueList.push(item);
+                    }
+                }
+                msgPool = uniqueList;
             } catch (e) {
                 msgPool = [];
             }
@@ -184,16 +259,23 @@
             msgPanel.classList.toggle('active', window.scrollY > 80);
         });
 
-        // 表单提交即时弹幕
-        form.addEventListener('submit', () => {
-            setTimeout(() => {
-                const nick = form.nick.value.trim();
-                const content = form.content.value.trim();
-                msgPool.push({ nick, content });
-                addDanmaku(nick, content);
+        // 表单提交：阻止刷新、防重复
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nick = form.nick.value.trim();
+            const content = form.content.value.trim();
+            addDanmaku(nick, content);
+
+            const formData = new FormData(form);
+            fetch('/', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: formData
+            }).then(() => {
                 form.reset();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-            }, 100);
+                fetchMsg();
+            });
         });
 
         // 页面初始化
@@ -205,3 +287,4 @@
     </script>
 </body>
 </html>
+

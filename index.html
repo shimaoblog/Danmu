@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留言板-默默无名就到此为止啦...</title>
+    https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1/style.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 200vh;
+            overflow-x: hidden;
+            font-family: "LXGW WenKai", "霞鹜文楷", system-ui, -apple-system, sans-serif;
+        }
+        
+        .danmaku-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+        .danmaku-item {
+            position: absolute;
+            white-space: nowrap;
+            font-size: 17px;
+            color: #fff;
+            text-shadow: 0 0 3px #fff, 0 0 6px #a855f7, 0 0 10px #3b82f6;
+            will-change: transform;
+        }
+        .top-tip {
+            position: fixed;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            z-index: 2;
+            font-size: 16px;
+            color: #e0e0e0;
+            text-shadow: 0 0 3px #a855f7;
+        }
+        
+        .message-panel {
+            position: fixed;
+            bottom: -420px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 92%;
+            max-width: 580px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px 16px 0 0;
+            transition: bottom 0.4s ease-out;
+            z-index: 10;
+        }
+        .message-panel.active {
+            bottom: 0;
+        }
+        .panel-title {
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #f0f0f0;
+            text-shadow: 0 0 5px #3b82f6;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            font-family: inherit;
+            text-shadow: 0 0 2px #a855f7;
+        }
+        input::placeholder, textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(90deg, #7c3aed, #2563eb);
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-shadow: 0 0 4px #fff;
+            font-family: inherit;
+        }
+        .submit-btn:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 0 10px #7c3aed;
+        }
+        .drag-bar {
+            width: 50px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            margin: 0 auto 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="danmaku-container" id="danmakuBox"></div>
+    <div class="top-tip">向下滑动页面，打开留言板</div>
+
+    <div class="message-panel" id="msgPanel">
+        <div class="drag-bar"></div>
+        <h3 class="panel-title">走心的留言更能打动人心...</h3>
+        <form name="msgBoard" data-netlify="true" id="msgForm">
+            <input type="text" name="nick" placeholder="昵称" required>
+            <textarea name="content" rows="4" placeholder="输入留言内容..." required></textarea>
+            <button class="submit-btn" type="submit">发送弹幕</button>
+        </form>
+    </div>
+
+    <script>
+        const danmakuBox = document.getElementById('danmakuBox');
+        const msgPanel = document.getElementById('msgPanel');
+        const form = document.getElementById('msgForm');
+        let msgPool = [];
+        const textColors = ['#e879f9','#60a5fa','#4ade80','#facc15','#fb7185'];
+        const API_URL = "/.netlify/functions/getMsg";
+
+        // 创建单条弹幕
+        function addDanmaku(nick, text) {
+            const dan = document.createElement('div');
+            dan.className = 'danmaku-item';
+            dan.innerText = `「${nick}」${text}`;
+            dan.style.color = textColors[Math.floor(Math.random() * textColors.length)];
+            const topPos = Math.random() * 88 + '%';
+            dan.style.top = topPos;
+            dan.style.left = '100%';
+            danmakuBox.appendChild(dan);
+
+            const speed = 4 + Math.random() * 7;
+            const totalWidth = window.innerWidth + dan.offsetWidth;
+            const runTime = totalWidth / speed;
+
+            dan.animate([
+                { transform: 'translateX(0)' },
+                { transform: `translateX(-${totalWidth}px)` }
+            ], {
+                duration: runTime * 1000,
+                easing: 'linear'
+            }).onfinish = () => dan.remove();
+        }
+
+        // 轮播弹幕
+        function loopDanmaku() {
+            if (msgPool.length === 0) return;
+            const item = msgPool[Math.floor(Math.random() * msgPool.length)];
+            addDanmaku(item.nick, item.content);
+        }
+
+        // 拉取后端留言
+        async function fetchMsg() {
+            try {
+                const res = await fetch(API_URL);
+                const list = await res.json();
+                msgPool = list;
+            } catch (e) {
+                msgPool = [];
+            }
+        }
+
+        // 滚动展开留言板
+        window.addEventListener('scroll', () => {
+            msgPanel.classList.toggle('active', window.scrollY > 80);
+        });
+
+        // 表单提交即时弹幕
+        form.addEventListener('submit', () => {
+            setTimeout(() => {
+                const nick = form.nick.value.trim();
+                const content = form.content.value.trim();
+                msgPool.push({ nick, content });
+                addDanmaku(nick, content);
+                form.reset();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
+        });
+
+        // 页面初始化
+        window.addEventListener('load', async () => {
+            await fetchMsg();
+            setInterval(loopDanmaku, 2200 + Math.random() * 1500);
+            setInterval(fetchMsg, 60000);
+        });
+    </script>
+</body>
+</html>

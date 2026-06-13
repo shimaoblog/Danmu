@@ -1,8 +1,8 @@
 const fetch = require('node-fetch');
 
 // ========= 请替换为你自己的信息 ==========
-const NETLIFY_TOKEN = "你的Netlify个人访问令牌";
-const SITE_ID = "你的Netlify站点ID";
+const NETLIFY_TOKEN = "nfp_5DkLhLkRdSjaFX6xBD6YJLbcz8RHXYnb7ff5";
+const SITE_ID = "c197f2e6-3496-42a5-8e10-636d84b0c79d";
 const FORM_ID = "你的表单ID";
 // ======================================
 

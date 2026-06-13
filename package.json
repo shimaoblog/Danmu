@@ -1,0 +1,12 @@
+{
+  "name": "danmaku-comment-board",
+  "version": "1.0.0",
+  "description": "弹幕留言板，基于 GitHub Pages + Netlify Forms + Netlify Functions",
+  "main": "index.html",
+  "scripts": {},
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  },
+  "author": "shimaoblog",
+  "license": "MIT"
+}
